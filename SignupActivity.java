@@ -1,8 +1,14 @@
 package com.sourcey.materiallogindemo;
-
+import JSSON.JSONMessage;
+import JSSON.JSONMessageBuilder;
+import JSSON.MessageType;
+import logic.GameStateController;
+import logic.Overseer;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -11,149 +17,90 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+
 import butterknife.ButterKnife;
 import butterknife.Bind;
 
 public class SignupActivity extends AppCompatActivity {
     private static final String TAG = "SignupActivity";
 
-    @Bind(R.id.input_name) EditText _nameText;
-    @Bind(R.id.input_email) EditText _emailText;
-    @Bind(R.id.input_login) EditText _loginText;
-    @Bind(R.id.input_mobile) EditText _mobileText;
-    @Bind(R.id.input_password) EditText _passwordText;
-    @Bind(R.id.input_reEnterPassword) EditText _reEnterPasswordText;
-    @Bind(R.id.btn_signup) Button _signupButton;
-    @Bind(R.id.link_login) TextView _loginLink;
-    
+    public static SignupActivity getInstance() {
+        return instance;
+    }
+
+    public static SignupActivity instance ;
+    public NetworkTask networkTask ;
+    public Overseer mainOverseer=Overseer.getInstance();
+    @Bind(R.id.input_ip) EditText hostField;
+    @Bind(R.id.input_login) EditText loginField;
+    @Bind(R.id.input_port) EditText portField;
+    @Bind(R.id.input_password) EditText passwordField;
+
+    @Bind(R.id.btn_signup) Button signupButton;
+    @Bind(R.id.btn_login) Button loginButton;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        final Overseer mainOverseer =Overseer.getInstance();
         setContentView(R.layout.activity_signup);
         ButterKnife.bind(this);
+        networkTask = new NetworkTask();
+        instance = this;
+        signupButton.setOnClickListener(new View.OnClickListener() {
 
-        _signupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                signup();
+
+
+                 networkTask.execute() ;
+                //signupButton.setClickable(false);
+
+
+
+        }});
+
+        loginButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Log.d("tag", getHost().toString());
+               // networkTask.execute();
+               // loginButton.setClickable(false);
             }
         });
 
-        _loginLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Finish the registration screen and return to the Login activity
-                Intent intent = new Intent(getApplicationContext(),LoginActivity.class);
-                startActivity(intent);
-                finish();
-                overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
-            }
-        });
     }
 
-    public void signup() {
-        Log.d(TAG, "Signup");
-
-        if (!validate()) {
-            onSignupFailed();
-            return;
-        }
-
-        _signupButton.setEnabled(false);
-
-        final ProgressDialog progressDialog = new ProgressDialog(SignupActivity.this,
-                R.style.AppTheme_Dark_Dialog);
-        progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Tworzenie konta");
-        progressDialog.show();
-
-        String name = _nameText.getText().toString();
-        String address = _loginText.getText().toString();
-        String email = _emailText.getText().toString();
-        String mobile = _mobileText.getText().toString();
-        String password = _passwordText.getText().toString();
-        String reEnterPassword = _reEnterPasswordText.getText().toString();
-
-        // TODO: Implement your own signup logic here.
-
-        new android.os.Handler().postDelayed(
-                new Runnable() {
-                    public void run() {
-                        // On complete call either onSignupSuccess or onSignupFailed
-                        // depending on success
-                        onSignupSuccess();
-                        // onSignupFailed();
-                        progressDialog.dismiss();
-                    }
-                }, 3000);
+    public void makeToast(){Toast.makeText(getApplicationContext(), "msg msg", Toast.LENGTH_SHORT).show();}
+    public String getHost(){
+        return hostField.getText().toString();
+    }
+    public int getPort(){
+        return Integer.parseInt(portField.getText().toString());
+    }
+    public String getLogin(){
+        return loginField.getText().toString();
+    }
+    public String getPassword(){
+        return passwordField.getText().toString();
+    }
+    public void clearPassword(){
+        passwordField.setText("");
     }
 
-
-    public void onSignupSuccess() {
-        _signupButton.setEnabled(true);
-        setResult(RESULT_OK, null);
+    public void changeLogToGameFrame(){
+        Intent intent = new Intent(getApplicationContext(), TableActivity.class);
+        startActivityForResult(intent, 0);
         finish();
+        overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
     }
 
-    public void onSignupFailed() {
-        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
-
-        _signupButton.setEnabled(true);
-    }
-
-    public boolean validate() {
-        boolean valid = true;
-
-        String name = _nameText.getText().toString();
-        String address = _loginText.getText().toString();
-        String email = _emailText.getText().toString();
-        String mobile = _mobileText.getText().toString();
-        String password = _passwordText.getText().toString();
-        String reEnterPassword = _reEnterPasswordText.getText().toString();
-
-        if (name.isEmpty() || name.length() < 3) {
-            _nameText.setError("conajmniej 3 litery");
-            valid = false;
-        } else {
-            _nameText.setError(null);
-        }
-
-        if (address.isEmpty()) {
-            _loginText.setError("Wprowadz adres email");
-            valid = false;
-        } else {
-            _loginText.setError(null);
-        }
 
 
-        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText.setError("Wprowadź adres email");
-            valid = false;
-        } else {
-            _emailText.setError(null);
-        }
-
-        if (mobile.isEmpty() || mobile.length()!=10) {
-            _mobileText.setError("Wprowadź numer telefonu");
-            valid = false;
-        } else {
-            _mobileText.setError(null);
-        }
-
-        if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            _passwordText.setError("conajmniej 4 znaki");
-            valid = false;
-        } else {
-            _passwordText.setError(null);
-        }
-
-        if (reEnterPassword.isEmpty() || reEnterPassword.length() < 4 || reEnterPassword.length() > 10 || !(reEnterPassword.equals(password))) {
-            _reEnterPasswordText.setError("Hasla sie nie zgadzaja");
-            valid = false;
-        } else {
-            _reEnterPasswordText.setError(null);
-        }
-
-        return valid;
-    }
 }

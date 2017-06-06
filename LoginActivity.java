@@ -16,6 +16,7 @@ import butterknife.ButterKnife;
 import butterknife.Bind;
 
 public class LoginActivity extends AppCompatActivity {
+
     private static final String TAG = "LoginActivity";
     private static final int REQUEST_SIGNUP = 0;
 
@@ -29,14 +30,8 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
-        
-        _loginButton.setOnClickListener(new View.OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                login();
-            }
-        });
+
 
         _signupLink.setOnClickListener(new View.OnClickListener() {
 
@@ -96,6 +91,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+
     @Override
     public void onBackPressed() {
         // Disable going back to the MainActivity
@@ -108,7 +104,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void onLoginFailed() {
-        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
+        Toast.makeText(getBaseContext(), "Nie udało się zalogować", Toast.LENGTH_LONG).show();
 
         _loginButton.setEnabled(true);
     }

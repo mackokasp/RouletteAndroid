@@ -1,21 +1,28 @@
 package com.sourcey.materiallogindemo;
 
 import android.content.Intent;
+import android.os.StrictMode;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+import logic.Overseer;
 
 public class MainActivity extends ActionBarActivity {
-
+   public static MainActivity instance ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        instance=this;
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectDiskReads().detectDiskWrites().detectNetwork().penaltyLog().build());
+        Log.d("Goal","Bamka") ;
+        System.setProperty("java.net.preferIPv4Stack" , "true");
+        Overseer overseer = Overseer.getInstance();
         setContentView(R.layout.activity_main);
-
-
-        Intent intent = new Intent(this, LoginActivity.class);
+        Intent intent = new Intent(this, SignupActivity.class);
         startActivity(intent);
     }
 
